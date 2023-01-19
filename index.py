@@ -3,7 +3,7 @@ import numpy as np
 import imutils
 import cv2
 import argparse
-
+import matplotlib.pyplot as plt
 
 class Stitcher:
     def __init__(self):  # determine if we are using OpenCV v3.X
@@ -77,7 +77,7 @@ class Stitcher:
                 (H, status) = cv2.findHomography(ptsA, ptsB, cv2.RANSAC, reprojThresh)
                 # return the matches along with the homograpy matrix
                 # and status of each matched point
-                print(f'return :: {H}')
+                # print(f'return :: {H}')
 
                 return (matches, H, status)
         return None
@@ -93,18 +93,24 @@ class Stitcher:
             # only process the match if the keypoint was successfully matched
             if s == 1:
                 # draw the match
-                ptsA = (int(kpsA[queryIdx][0]), int(kpsA[queryIdx][1]))
-                ptsB = (int(kpsB[trainIdx][0]) + wA, int(kpsB[trainIdx][1]))
-                cv2.line(vis, ptA, ptB, (0, 255, 0), 1)
+                ptsA = (int(kpsA[queryIdx].pt[0]), int(kpsA[queryIdx].pt[1]))
+                ptsB = (int(kpsB[trainIdx].pt[0]) + wA, int(kpsB[trainIdx].pt[1]))
+                cv2.line(vis, ptsA, ptsB, (0, 255, 0), 1)
         return vis
 
 
-imageA = cv2.imread('img1.jpg')
-imageB = cv2.imread('img2.jpg')
-imageA = imutils.resize(imageA, width=400)
-imageB = imutils.resize(imageB, width=400)# stitch the images together to create a panorama
+# Read the image
+img = cv2.imread('./assets/image4.jpg')
+
+# Split the image into two parts with 200 pixel in common to match
+
+imageA = img[:,0:int(img.shape[1]/2)+50]
+imageB = img[:,int(img.shape[1]/2)-50:]
+# plt.imshow(right)
+
 stitcher = Stitcher()
-(result, vis) = stitcher.stitch([imageA, imageB], showMatches=True)# show the images
+(result, vis) = stitcher.stitch([imageA, imageB], showMatches=True)
+# show the images
 cv2.imshow('Image A', imageA)
 cv2.imshow('Image B', imageB)
 cv2.imshow('Keypoint Matches', vis)
